@@ -44,8 +44,21 @@ public class Main {
 
         // Keep the main thread alive to allow interaction
         try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
-            System.out.println("\nPress ENTER to stop the system...");
-            scanner.nextLine();
+            String input;
+            boolean running = true;
+            System.out.println("\nEnter 3 to stop, 2 to pause, and 1 to resume the system...");
+            while (running) {
+                input = scanner.nextLine();
+                switch (input) {
+                    case "3":
+                        System.out.println("Stopping the system...");
+                        running = false;
+                        break;
+                    default:
+                        System.out.println("Invalid input. Enter 3 to stop, 2 to pause, and 1 to resume.");
+                        break;
+                }
+            }
         }
 
         // Stop all threads when the user exits

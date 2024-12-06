@@ -39,4 +39,11 @@ public class Customer extends Thread {
     public void stopRunning() {
         Running = false;
     }
+
+    public void pauseRunning() {
+        boolean paused = true;
+    }
+
+    public void resumeRunning() {
+    }
 }

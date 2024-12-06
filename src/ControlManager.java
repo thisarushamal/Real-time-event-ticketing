@@ -22,11 +22,11 @@ public class ControlManager {
                 switch (command) {
                     case 1:
                         System.out.println("Resuming system...");
-                        resumeThreads();
+                        resumeThreads(vendors, customers);
                         break;
                     case 2:
                         System.out.println("Pausing system...");
-                        pauseThreads();
+                        pauseThreads(vendors, customers);
                         break;
                     case 3:
                         System.out.println("Exiting system...");
@@ -37,6 +37,12 @@ public class ControlManager {
                 }
             }
         }
+    }
+
+    private void pauseThreads(List<Vendor> vendors, List<Customer> customers) {
+    }
+
+    private void resumeThreads(List<Vendor> vendors, List<Customer> customers) {
     }
 
     private void pauseThreads() {
