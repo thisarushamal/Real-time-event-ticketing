@@ -20,14 +20,6 @@ public class ControlManager {
                 int command = scanner.nextInt();
 
                 switch (command) {
-                    case 1:
-                        System.out.println("Resuming system...");
-                        resumeThreads(vendors, customers);
-                        break;
-                    case 2:
-                        System.out.println("Pausing system...");
-                        pauseThreads(vendors, customers);
-                        break;
                     case 3:
                         System.out.println("Exiting system...");
                         stopThreads(vendors, customers);
@@ -39,22 +31,7 @@ public class ControlManager {
         }
     }
 
-    private void pauseThreads(List<Vendor> vendors, List<Customer> customers) {
-    }
 
-    private void resumeThreads(List<Vendor> vendors, List<Customer> customers) {
-    }
-
-    private void pauseThreads() {
-        isPaused = true;
-    }
-
-    private void resumeThreads() {
-        isPaused = false;
-        synchronized (this) {
-            notifyAll(); // Notify threads waiting for resume
-        }
-    }
 
     private void stopThreads(List<Vendor> vendors, List<Customer> customers) {
         isRunning = false;
@@ -62,14 +39,4 @@ public class ControlManager {
         customers.forEach(Customer::stopRunning);
     }
 
-    public synchronized void waitForResume() {
-        while (isPaused) {
-            try {
-                wait(); // Wait until notified to resume
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("Thread interrupted while paused.");
-            }
-        }
-    }
 }
