@@ -1,16 +1,22 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+
 
 public class Main {
     public static void main(String[] args) {
         // Load configuration
         Configuration configuration = null;
+
         try {
+            // Try to load configuration from JSON
+            configuration = Configuration.loadFromJson();
+            System.out.println("Loaded configuration from JSON: " + configuration);
+        } catch (IOException e) {
+            // If loading fails, prompt the user for inputs
+            System.out.println("Configuration file not found or invalid. Please provide configuration inputs.");
             configuration = new Configuration();
             configuration.loadConfiguration();
-        } catch (Exception e) {
-            System.out.println("Error loading configuration");
-            System.exit(1);
         }
 
         // Create ticket pool
@@ -21,14 +27,14 @@ public class Main {
         List<Customer> customers = new ArrayList<>();
 
         // Create and start vendors
-        for (int i = 1; i <= configuration.getTicketReleaseRate(); i++) { // Example: 2 vendors
+        for (int i = 1; i <= configuration.getTicketReleaseRate(); i++) {
             Vendor vendor = new Vendor(i, ticketPool, configuration.getTicketReleaseRate(), configuration.getTotalTickets());
             vendors.add(vendor);
             vendor.start();
         }
 
         // Create and start customers
-        for (int i = 1; i <= configuration.getCustomerRetrievalRate(); i++) { // Example: 5 customers
+        for (int i = 1; i <= configuration.getCustomerRetrievalRate(); i++) {
             Customer customer = new Customer(i, ticketPool, configuration.getCustomerRetrievalRate());
             customers.add(customer);
             customer.start();
@@ -59,11 +65,21 @@ public class Main {
                         break;
                 }
             }
+        } catch (Exception e) {
+            System.out.println("Error during system interaction: " + e.getMessage());
         }
 
         // Stop all threads when the user exits
         vendors.forEach(Vendor::stopRunning);
         customers.forEach(Customer::stopRunning);
+
+        // Save configuration back to JSON for future use
+        try {
+            configuration.saveToJson();
+            System.out.println("Configuration saved to config.json.");
+        } catch (IOException e) {
+            System.out.println("Failed to save configuration: " + e.getMessage());
+        }
 
         System.out.println("System stopped.");
     }
