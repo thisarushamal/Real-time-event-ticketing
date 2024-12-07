@@ -1,20 +1,38 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
-
+import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
         // Load configuration
         Configuration configuration = null;
+        File configFile = new File("config.json");
 
-        try {
-            // Try to load configuration from JSON
-            configuration = Configuration.loadFromJson();
-            System.out.println("Loaded configuration from JSON: " + configuration);
-        } catch (IOException e) {
-            // If loading fails, prompt the user for inputs
-            System.out.println("Configuration file not found or invalid. Please provide configuration inputs.");
+        if (configFile.exists()) {
+            try {
+                Configuration existingConfig = Configuration.loadFromJson();
+                System.out.println("Found existing configuration: " + existingConfig);
+                System.out.println("Do you want to continue with current config? (Y/N)");
+
+                java.util.Scanner scanner = new java.util.Scanner(System.in);
+                String choice = scanner.nextLine().trim();
+
+                if (choice.equalsIgnoreCase("Y")) {
+                    configuration = existingConfig;
+                    System.out.println("Continuing with existing configuration...");
+                } else {
+                    System.out.println("Please enter new configuration values:");
+                    configuration = new Configuration();
+                    configuration.loadConfiguration();
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading configuration file. Starting with new configuration.");
+                configuration = new Configuration();
+                configuration.loadConfiguration();
+            }
+        } else {
+            System.out.println("No existing configuration found. Please enter new configuration values:");
             configuration = new Configuration();
             configuration.loadConfiguration();
         }
@@ -48,39 +66,70 @@ public class Main {
             System.out.println("All threads stopped. Goodbye!");
         }));
 
-        // Keep the main thread alive to allow interaction
-        try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
-            String input;
-            boolean running = true;
-            System.out.println("\nEnter 3 to stop, 2 to pause, and 1 to resume the system...");
-            while (running) {
-                input = scanner.nextLine();
-                switch (input) {
-                    case "3":
-                        System.out.println("Stopping the system...");
-                        running = false;
-                        break;
-                    default:
-                        System.out.println("Invalid input. Enter 3 to stop, 2 to pause, and 1 to resume.");
-                        break;
+        // Create a separate thread for user interaction
+        Thread interactionThread = new Thread(() -> {
+            try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
+                boolean running = true;
+                System.out.println("\nEnter 3 to stop, 2 to pause, and 1 to resume the system...");
+
+                while (running) {
+                    String input = scanner.nextLine().trim();
+                    switch (input) {
+                        case "3":
+                            System.out.println("Stopping the system...");
+                            running = false;
+                            break;
+                        case "2":
+                            System.out.println("System paused. Press 1 to resume or 3 to stop.");
+                            break;
+                        case "1":
+                            System.out.println("System resumed.");
+                            break;
+                        default:
+                            System.out.println("Invalid input. Enter 3 to stop, 2 to pause, and 1 to resume.");
+                            break;
+                    }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("Error during system interaction: " + e.getMessage());
-        }
+        });
 
-        // Stop all threads when the user exits
-        vendors.forEach(Vendor::stopRunning);
-        customers.forEach(Customer::stopRunning);
+        // Start the interaction thread
+        interactionThread.start();
 
-        // Save configuration back to JSON for future use
+        // Wait for the interaction thread to finish
         try {
-            configuration.saveToJson();
-            System.out.println("Configuration saved to config.json.");
-        } catch (IOException e) {
-            System.out.println("Failed to save configuration: " + e.getMessage());
-        }
+            interactionThread.join();
 
-        System.out.println("System stopped.");
+            // Stop all threads and wait for them to finish
+            vendors.forEach(vendor -> {
+                vendor.stopRunning();
+                try {
+                    vendor.join();
+                } catch (InterruptedException e) {
+                    System.out.println("Error waiting for vendor to stop: " + e.getMessage());
+                }
+            });
+
+            customers.forEach(customer -> {
+                customer.stopRunning();
+                try {
+                    customer.join();
+                } catch (InterruptedException e) {
+                    System.out.println("Error waiting for customer to stop: " + e.getMessage());
+                }
+            });
+
+            // Save the final configuration
+            try {
+                configuration.saveToJson();
+                System.out.println("Configuration saved to config.json");
+            } catch (IOException e) {
+                System.out.println("Failed to save configuration: " + e.getMessage());
+            }
+
+            System.out.println("System stopped.");
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted: " + e.getMessage());
+        }
     }
 }

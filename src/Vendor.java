@@ -3,7 +3,7 @@ public class Vendor extends Thread {
     private final TicketPool ticketPool;
     private final int releaseRate;
     private final int totalTickets;
-    private boolean Running = true;
+    private volatile boolean running = true;
 
     public Vendor(int vendorId, TicketPool ticketPool, int releaseRate, int totalTickets) {
         this.vendorId = vendorId;
@@ -15,30 +15,30 @@ public class Vendor extends Thread {
     @Override
     public void run() {
         System.out.println("Vendor " + vendorId + " started");
-
-        while (Running) {
+        while (running) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000); // Simulate some work
                 for (int i = 0; i < releaseRate; i++) {
+                    if (!running) break;
                     if (ticketPool.getAvailableTickets() < totalTickets) {
                         String ticket = "Ticket" + ticketPool.getAvailableTickets();
                         ticketPool.addTicket(ticket);
                         System.out.println("Vendor " + vendorId + " released ticket: " + ticket);
                     } else {
-                        System.out.println("Vendor " + vendorId + " failed to release ticket");
                         break;
                     }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 System.out.println("Vendor " + vendorId + " interrupted");
+                break;
             }
         }
         System.out.println("Vendor " + vendorId + " stopped");
     }
 
     public void stopRunning() {
-        Running = false;
+        running = false;
+        this.interrupt(); // Interrupt the thread if it's blocked
     }
-
 }
