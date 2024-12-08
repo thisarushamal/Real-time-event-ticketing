@@ -5,7 +5,6 @@ import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
-        // Load configuration
         Configuration configuration = null;
         File configFile = new File("config.json");
 
@@ -20,7 +19,6 @@ public class Main {
 
                 if (choice.equalsIgnoreCase("Y")) {
                     configuration = existingConfig;
-                    System.out.println("Continuing with existing configuration...");
                 } else {
                     System.out.println("Please enter new configuration values:");
                     configuration = new Configuration();
@@ -37,47 +35,37 @@ public class Main {
             configuration.loadConfiguration();
         }
 
-        // Create ticket pool
-        TicketPool ticketPool = new TicketPool(configuration.getMaxTicketCapacity());
+        TicketPool ticketPool = new TicketPool(configuration.getMaxTicketCapacity(), configuration.getTotalTickets());
 
-        // Lists to hold vendor and customer threads
         List<Vendor> vendors = new ArrayList<>();
         List<Customer> customers = new ArrayList<>();
 
-        // Create and start vendors
         for (int i = 1; i <= configuration.getTicketReleaseRate(); i++) {
-            Vendor vendor = new Vendor(i, ticketPool, configuration.getTicketReleaseRate(), configuration.getTotalTickets());
+            Vendor vendor = new Vendor(i, ticketPool, configuration.getTicketReleaseRate());
             vendors.add(vendor);
             vendor.start();
         }
 
-        // Create and start customers
         for (int i = 1; i <= configuration.getCustomerRetrievalRate(); i++) {
             Customer customer = new Customer(i, ticketPool, configuration.getCustomerRetrievalRate());
             customers.add(customer);
             customer.start();
         }
 
-        // Add a shutdown hook to gracefully stop threads
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\nShutting down the system...");
-            vendors.forEach(Vendor::stopRunning);
-            customers.forEach(Customer::stopRunning);
-            System.out.println("All threads stopped. Goodbye!");
-        }));
+        // Shared flag to signal when to stop the system
+        final boolean[] running = {true};
 
-        // Create a separate thread for user interaction
+        // Interaction thread to listen for user input
         Thread interactionThread = new Thread(() -> {
             try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
-                boolean running = true;
                 System.out.println("\nEnter 3 to stop, 2 to pause, and 1 to resume the system...");
 
-                while (running) {
+                while (running[0]) {
                     String input = scanner.nextLine().trim();
                     switch (input) {
                         case "3":
                             System.out.println("Stopping the system...");
-                            running = false;
+                            running[0] = false; // Signal to stop
                             break;
                         case "2":
                             System.out.println("System paused. Press 1 to resume or 3 to stop.");
@@ -93,14 +81,13 @@ public class Main {
             }
         });
 
-        // Start the interaction thread
         interactionThread.start();
 
-        // Wait for the interaction thread to finish
+        // Main thread waits for the interaction thread to stop
         try {
             interactionThread.join();
 
-            // Stop all threads and wait for them to finish
+            // Stop all vendor and customer threads
             vendors.forEach(vendor -> {
                 vendor.stopRunning();
                 try {
@@ -129,7 +116,7 @@ public class Main {
 
             System.out.println("System stopped.");
         } catch (InterruptedException e) {
-            System.out.println("Main thread interrupted: " + e.getMessage());
+            System.out.println("Main thread interrupted.");
         }
     }
 }

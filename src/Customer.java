@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class Customer extends Thread {
     private final int customerId;
     private final TicketPool ticketPool;
@@ -15,14 +17,8 @@ public class Customer extends Thread {
         System.out.println("Customer " + customerId + " started");
         while (running) {
             try {
-                Thread.sleep(1000); // Simulate some work
-                for (int i = 0; i < retrievalRate; i++) {
-                    if (!running) break;
-                    String ticket = ticketPool.removeTicket();
-                    if (ticket != null) {
-                        System.out.println("Customer " + customerId + " got ticket: " + ticket);
-                    }
-                }
+                Thread.sleep(1000); // Simulate one second delay
+                ticketPool.removeTickets(retrievalRate, customerId);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 System.out.println("Customer " + customerId + " interrupted");
@@ -34,6 +30,6 @@ public class Customer extends Thread {
 
     public void stopRunning() {
         running = false;
-        this.interrupt(); // Interrupt the thread if it's blocked
+        this.interrupt();
     }
 }

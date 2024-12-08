@@ -62,29 +62,19 @@ public class Configuration {
         while (true) {
             System.out.println("Enter the total number of tickets: ");
             totalTickets = scanner.nextInt();
-            if (totalTickets > 0) break;
-            System.out.println("Total tickets must be greater than 0");
-        }
-
-        while (true) {
-            System.out.println("Enter the ticket release rate: ");
+            System.out.println("Enter the ticket release rate (tickets per second): ");
             ticketReleaseRate = scanner.nextInt();
-            if (ticketReleaseRate > 0) break;
-            System.out.println("Ticket release rate must be greater than 0");
-        }
-
-        while (true) {
-            System.out.println("Enter the customer retrieval rate: ");
+            System.out.println("Enter the customer retrieval rate (tickets per second): ");
             customerRetrievalRate = scanner.nextInt();
-            if (customerRetrievalRate > 0) break;
-            System.out.println("Customer retrieval rate must be greater than 0");
-        }
-
-        while (true) {
             System.out.println("Enter the maximum ticket capacity: ");
             maxTicketCapacity = scanner.nextInt();
-            if (maxTicketCapacity > 0) break;
-            System.out.println("Maximum ticket capacity must be greater than 0");
+
+            if (totalTickets > maxTicketCapacity) {
+                System.out.println("Error: Total tickets cannot exceed maximum ticket capacity.");
+                System.out.println("Please re-enter the configurations.");
+            } else {
+                break;
+            }
         }
 
         // Save configuration to JSON file after input

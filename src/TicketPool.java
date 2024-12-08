@@ -5,40 +5,49 @@ public class TicketPool {
     private final List<String> tickets; // List to hold tickets
     private final int maxCapacity;     // Maximum number of tickets
 
-    public TicketPool(int maxCapacity) {
+    public TicketPool(int maxCapacity, int initialTickets) {
         this.tickets = new ArrayList<>();
         this.maxCapacity = maxCapacity;
-    }
 
-    // Adds a ticket to the pool if there's room
-    public synchronized void addTicket(String ticket) {
-        while (tickets.size() >= maxCapacity) {
-            try {
-                wait(); // Wait until there's space in the pool
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("Vendor interrupted while waiting to add ticket.");
-                return;
-            }
+        // Initialize the ticket pool with the initial tickets
+        for (int i = 0; i < initialTickets; i++) {
+            tickets.add("Ticket" + i);
         }
-        tickets.add(ticket); // Add ticket to the list
-        notifyAll();         // Notify waiting customers
     }
 
-    // Removes a ticket from the pool if available
-    public synchronized String removeTicket() {
+    // Adds tickets to the pool if there's room
+    public synchronized void addTickets(int count, int vendorId) {
+        int addedCount = 0;
+        while (tickets.size() < maxCapacity && addedCount < count) {
+            String ticket = "Ticket" + (tickets.size() + 1);
+            tickets.add(ticket);
+            addedCount++;
+        }
+        System.out.println("Vendor-" + vendorId + " added " + addedCount + " tickets. Total tickets: " + tickets.size());
+        notifyAll(); // Notify waiting customers
+    }
+
+    // Removes tickets from the pool if available
+    public synchronized List<String> removeTickets(int count, int customerId) {
+        List<String> purchasedTickets = new ArrayList<>();
         while (tickets.isEmpty()) {
             try {
                 wait(); // Wait until tickets are available
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.out.println("Customer interrupted while waiting to retrieve ticket.");
-                return null;
+                System.out.println("Customer interrupted while waiting to retrieve tickets.");
+                return purchasedTickets;
             }
         }
-        String ticket = tickets.remove(0); // Remove ticket from the front of the list
-        notifyAll();                       // Notify waiting vendors
-        return ticket;
+
+        for (int i = 0; i < count && !tickets.isEmpty(); i++) {
+            purchasedTickets.add(tickets.remove(0));
+        }
+
+        System.out.println("Customer-" + customerId + " purchased " + purchasedTickets.size() + " tickets: " +
+                String.join(", ", purchasedTickets) + ". Remaining tickets: " + tickets.size());
+        notifyAll(); // Notify waiting vendors
+        return purchasedTickets;
     }
 
     // Gets the current number of available tickets
@@ -46,3 +55,4 @@ public class TicketPool {
         return tickets.size();
     }
 }
+
