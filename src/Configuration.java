@@ -60,20 +60,27 @@ public class Configuration {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("Enter the total number of tickets: ");
-            totalTickets = scanner.nextInt();
-            System.out.println("Enter the ticket release rate (tickets per second): ");
-            ticketReleaseRate = scanner.nextInt();
-            System.out.println("Enter the customer retrieval rate (tickets per second): ");
-            customerRetrievalRate = scanner.nextInt();
-            System.out.println("Enter the maximum ticket capacity: ");
-            maxTicketCapacity = scanner.nextInt();
+            try {
+                System.out.println("Enter the total number of tickets: ");
+                totalTickets = Integer.parseInt(scanner.nextLine().trim());
+                System.out.println("Enter the ticket release rate (tickets per second): ");
+                ticketReleaseRate = Integer.parseInt(scanner.nextLine().trim());
+                System.out.println("Enter the customer retrieval rate (tickets per second): ");
+                customerRetrievalRate = Integer.parseInt(scanner.nextLine().trim());
+                System.out.println("Enter the maximum ticket capacity: ");
+                maxTicketCapacity = Integer.parseInt(scanner.nextLine().trim());
 
-            if (totalTickets > maxTicketCapacity) {
-                System.out.println("Error: Total tickets cannot exceed maximum ticket capacity.");
-                System.out.println("Please re-enter the configurations.");
-            } else {
+                if (totalTickets > maxTicketCapacity) {
+                    throw new IllegalArgumentException("Total tickets cannot exceed maximum ticket capacity.");
+                }
+                if (totalTickets < 0 || ticketReleaseRate < 0 || customerRetrievalRate < 0 || maxTicketCapacity < 0) {
+                    throw new IllegalArgumentException("Values must be non-negative.");
+                }
                 break;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid integer.");
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
             }
         }
 
@@ -95,7 +102,11 @@ public class Configuration {
     // Load configuration from JSON file
     public static Configuration loadFromJson() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(new File(CONFIG_FILE), Configuration.class);
+        File configFile = new File(CONFIG_FILE);
+        if (!configFile.exists()) {
+            throw new IOException("Configuration file not found.");
+        }
+        return objectMapper.readValue(configFile, Configuration.class);
     }
 
     @Override
