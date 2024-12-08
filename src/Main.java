@@ -13,17 +13,27 @@ public class Main {
                 try {
                     Configuration existingConfig = Configuration.loadFromJson();
                     System.out.println("Found existing configuration: " + existingConfig);
-                    System.out.println("Do you want to continue with current config? (Y/N)");
 
                     java.util.Scanner scanner = new java.util.Scanner(System.in);
-                    String choice = scanner.nextLine().trim();
+                    String choice = "";
 
-                    if (choice.equalsIgnoreCase("Y")) {
-                        configuration = existingConfig;
-                    } else {
-                        System.out.println("Please enter new configuration values:");
-                        configuration = new Configuration();
-                        configuration.loadConfiguration();
+                    // Loop until the user enters a valid response
+                    while (true) {
+                        System.out.println("Do you want to continue with current config? (Y/N)");
+                        choice = scanner.nextLine().trim();
+
+                        if (choice.equalsIgnoreCase("Y")) {
+                            configuration = existingConfig;
+                            System.out.println("Continuing with existing configuration...");
+                            break; // Exit the loop on valid input
+                        } else if (choice.equalsIgnoreCase("N")) {
+                            System.out.println("Please enter new configuration values:");
+                            configuration = new Configuration();
+                            configuration.loadConfiguration();
+                            break; // Exit the loop on valid input
+                        } else {
+                            System.out.println("Invalid input. Please enter 'Y' or 'N'.");
+                        }
                     }
                 } catch (IOException e) {
                     System.out.println("Error reading configuration file: " + e.getMessage());
@@ -35,6 +45,7 @@ public class Main {
                 configuration = new Configuration();
                 configuration.loadConfiguration();
             }
+
 
             TicketPool ticketPool = new TicketPool(configuration.getMaxTicketCapacity(), configuration.getTotalTickets());
 
@@ -57,7 +68,7 @@ public class Main {
 
             Thread interactionThread = new Thread(() -> {
                 try (java.util.Scanner scanner = new java.util.Scanner(System.in)) {
-                    System.out.println("\nEnter 3 to stop, 2 to pause, and 1 to resume the system...");
+                    System.out.println("\nEnter 3 to stop the system...");
 
                     while (running[0]) {
                         String input = scanner.nextLine().trim();
@@ -66,14 +77,8 @@ public class Main {
                                 System.out.println("Stopping the system...");
                                 running[0] = false;
                                 break;
-                            case "2":
-                                System.out.println("System paused. Press 1 to resume or 3 to stop.");
-                                break;
-                            case "1":
-                                System.out.println("System resumed.");
-                                break;
                             default:
-                                System.out.println("Invalid input. Enter 3 to stop, 2 to pause, and 1 to resume.");
+                                System.out.println("Invalid input. Enter only 3 to stop the system.");
                                 break;
                         }
                     }
