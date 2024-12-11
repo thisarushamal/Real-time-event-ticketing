@@ -61,11 +61,11 @@ public class Configuration {
 
         while (true) {
             try {
-                System.out.println("Enter the total number of tickets: ");
+                System.out.println("Enter the total number of tickets(Current number of tickets in TicketPool): ");
                 totalTickets = Integer.parseInt(scanner.nextLine().trim());
-                System.out.println("Enter the ticket release rate (tickets per second): ");
+                System.out.println("Enter the ticket release rate (Number of tickets release per second): ");
                 ticketReleaseRate = Integer.parseInt(scanner.nextLine().trim());
-                System.out.println("Enter the customer retrieval rate (tickets per second): ");
+                System.out.println("Enter the customer retrieval rate (Number of tickets purchase per second): ");
                 customerRetrievalRate = Integer.parseInt(scanner.nextLine().trim());
                 System.out.println("Enter the maximum ticket capacity: ");
                 maxTicketCapacity = Integer.parseInt(scanner.nextLine().trim());
