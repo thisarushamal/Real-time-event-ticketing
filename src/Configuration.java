@@ -56,7 +56,7 @@ public class Configuration {
 
     // Load configuration interactively from user
     public void loadConfiguration() {
-        System.out.println("***** Real-time Event Ticketing System *****");
+        System.out.println("***** Real-time Ticketing System *****");
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
